@@ -11,7 +11,6 @@ import sklearn.cross_validation
 
 import db
 
-# TODO use sklearn.preprocessing.PolynomialFeatures to make no-feature set for testing against
 # TODO use OneHotEncoder to process categorical cols
 
 def make_features1(listings):
