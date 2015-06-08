@@ -6,7 +6,8 @@ Created on Sun Jun  7 17:08:51 2015
 """
 
 import pandas as pd
-import sklearn as sk  # FIXME what's the standard?
+import sklearn as skl  # FIXME what's the standard?
+import sklearn.cross_validation
 
 import db
 
@@ -53,18 +54,22 @@ def get_training_test_set(listings, make_features=make_features1):
     """
     Get training/testing set split for ML
 
-    Returns (X, y, Xtest, ytest)
+    Returns (Xtrain, Xtest, ytrain, ytest)
 
     listings: DataFrame from SQL table listings
 
     make_features: function that maps listings to features
     """
-    labeled_listings = listings.dropna(subset='rating')
+    labeled_listings = listings.dropna(subset=('rating',))
     X = make_features(labeled_listings)
     y = labeled_listings.rating.map(categorize_rating)
-    #TNT finish
-    return X
+    return skl.cross_validation.train_test_split(X, y)
 
-engine = db.create_root_engine()
-rawtable = pd.io.sql.read_sql_table('listings', engine, index_col='id')
-frame_out = make_features1(rawtable)
+
+def get_logistic_regression_clf1():
+    skl.linear_model.LogisticRegression()
+
+if __name__ == '__main__':
+    engine = db.create_root_engine()
+    rawtable = pd.io.sql.read_sql_table('listings', engine, index_col='id')
+    frame_out = make_features1(rawtable)
