@@ -2,4 +2,7 @@
 {% block results %}
   <h2>Results!</h2>
   {{error}}
+  {% if rating is defined %}
+    {{rating}} with probability {{probability}}
+  {% endif %}
 {% endblock results %}
