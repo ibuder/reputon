@@ -66,7 +66,21 @@ def get_training_test_set(listings, make_features=make_features1):
 
 
 def get_logistic_regression_clf1():
-    skl.linear_model.LogisticRegression()
+    """
+    Logistic Regression with L2 regularization and feature normalization
+
+    Parameters not optimized at all
+    """
+    clf = skl.linear_model.LogisticRegression(multi_class='ovr', C=0.010)
+    return skl.pipeline.Pipeline([
+        ('scaler', skl.preprocessing.StandardScaler()), ('logistic', clf)])
+
+
+def get_dummy_clf():
+    """
+    Dummy classifier for comparison
+    """
+    return skl.dummy.DummyClassifier(strategy='stratified')
 
 if __name__ == '__main__':
     engine = db.create_root_engine()
