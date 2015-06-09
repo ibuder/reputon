@@ -8,6 +8,9 @@ Created on Sat Jun  6 06:36:06 2015
 import requests
 import pandas as pd
 import numpy as np
+import re
+
+import settings
 import db
 
 
@@ -74,27 +77,51 @@ def make_airbnb_json_dataframe(json, n_amenities=50):
                       prices, reviews,), axis=1)
 
 
+def airbnb_url_to_id(url):
+    m = re.search(r'rooms/([0-9]+)\??', url)
+    if m:
+        return 'air' + m.group(1)
+    return None
+
+
+mashape_headers = {
+        "X-Mashape-Key": settings.mashape_testing,
+        "Accept": "application/json"}
+
+
+def get_airbnb_by_id(id_, params={}):
+    """
+    Get single airbnb listing with known id
+
+    Returns request.json()
+    """
+    params_default = {'ids': id_}
+    params_default.update(params)
+    params = params_default
+    return requests.get('https://zilyo.p.mashape.com/search',
+                 headers=mashape_headers, params=params).json()
+
+
 def get_airbnb_json(params={}):
     """
     Use API to get JSON objects for a bunch of airbnb listings.
 
     Returns request.json()
     """
-    headers = {
-        "X-Mashape-Key": FIXME put in gitignored settings file,
-        "Accept": "application/json"}
+
     params_default = {'latitude': 37.762673, 'longitude': -122.438554,  # SF
           'provider': 'airbnb', 'resultsperpage': 50, 'sort': 'low2high',
           'page': 4, 'maxdistance': 5}
     params_default.update(params)
     params = params_default
     return requests.get('https://zilyo.p.mashape.com/search',
-                        headers=headers, params=params).json()
+                        headers=mashape_headers, params=params).json()
+
 # FIXME
 # See http://stackoverflow.com/questions/24879156/pandas-to-sql-with-sqlalchemy-duplicate-entries-error-in-mysqldb
 # for help with duplicates
-engine = db.create_root_engine()
-for page in range(40, 100):
-    json = get_airbnb_json({'page': page})
-    make_airbnb_json_dataframe(json).to_sql('listingsTest', engine,
-                                            if_exists='append', index=False)
+#engine = db.create_root_engine()
+#for page in range(40, 100):
+#   json = get_airbnb_json({'page': page})
+#    make_airbnb_json_dataframe(json).to_sql('listingsTest', engine,
+#                                           if_exists='append', index=False)
