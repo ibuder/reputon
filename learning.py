@@ -13,6 +13,7 @@ import db
 
 # TODO use OneHotEncoder to process categorical cols
 
+
 def make_features1(listings):
     """
     Get features for ML from DataFrame
