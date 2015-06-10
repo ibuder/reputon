@@ -1,8 +1,12 @@
 {% extends "input.html" %}
 {% block results %}
-  <h2>Results!</h2>
+  <div class="container">
+    <div class="starter-template">
+      <h2>Results:</h2>
+    </div>
   {{error}}
   {% if rating is defined %}
-    {{rating}} with probability {{probability}}
+    Average rating will be <b>{{rating}}</b> with probability <b>{{probability}}</b>
   {% endif %}
+  </div>
 {% endblock results %}
