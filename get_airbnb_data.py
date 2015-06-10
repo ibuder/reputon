@@ -66,7 +66,7 @@ def make_airbnb_json_dataframe(json, n_amenities=50):
     photos = pd.DataFrame(rawframe.photos.map(len)).rename(
         columns={'photos': 'nPhotos'})
     photos['photosComments'] = rawframe.photos.map(lambda photo_list:
-                ' '.join([photo['caption'] for photo in photo_list]))
+                        ' '.join([photo['caption'] for photo in photo_list]))
     prices = rawframe.price.apply(pd.Series)
     reviews = rawframe.reviews.apply(pd.Series)
     reviews.rename(columns={'count': 'nReviews'}, inplace=True)
@@ -117,7 +117,6 @@ def get_airbnb_json(params={}):
     params = params_default
     return requests.get('https://zilyo.p.mashape.com/search',
                         headers=mashape_headers, params=params).json()
-
 
 
 def populate_db_raster(latitude_range, longitude_range, step_km=1,
@@ -171,8 +170,8 @@ def put_data_in_db(data, table='listings_test',
     tmp_table: Temporary table for getting around insertion. Must already exist
     with unique constraint issues
     """
-    # FIXME
-    # See http://stackoverflow.com/questions/24879156/pandas-to-sql-with-sqlalchemy-duplicate-entries-error-in-mysqldb
+    # See
+    # http://stackoverflow.com/questions/24879156/pandas-to-sql-with-sqlalchemy-duplicate-entries-error-in-mysqldb
     # for inspiration of this solution
     engine = db.create_root_engine()
     data.to_sql(tmp_table, engine, if_exists='append', index=False)
@@ -180,10 +179,12 @@ def put_data_in_db(data, table='listings_test',
     connection.execute("REPLACE INTO " + table + " SELECT * FROM " + tmp_table)
     connection.execute('TRUNCATE TABLE ' + tmp_table)
 
-#json = get_airbnb_json({'page': 2, 'latitude': 37.804055, 'longitude': -122.408990,
+# Examples:
+# json = get_airbnb_json({'page': 2, 'latitude': 37.804055,
+#                        'longitude': -122.408990,
 #                        'maxdistance': 0.1})
-#engine = db.create_root_engine()
-#for page in range(40, 100):
+# engine = db.create_root_engine()
+# for page in range(40, 100):
 #   json = get_airbnb_json({'page': page})
 #    make_airbnb_json_dataframe(json).to_sql('listingsTest', engine,
 #                                           if_exists='append', index=False)
