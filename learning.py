@@ -8,10 +8,18 @@ Created on Sun Jun  7 17:08:51 2015
 import pandas as pd
 import sklearn as skl  # FIXME what's the standard?
 import sklearn.cross_validation
+import sklearn.linear_model
+import sklearn.pipeline
+import sklearn.preprocessing
 
 import db
 
-# TODO use OneHotEncoder to process categorical cols
+# TODO Think about having binary features for no bathroom, bedroom, etc. info
+#   i.e. when those columns are -1
+# FIXME how to deal with missing data (e.g. -1 in some columns)
+# TODO map checkIn, checkOut to numerical
+# TODO bag of words for text
+# TODO think more about whether to use nReviews
 
 
 def make_features1(listings):
@@ -21,12 +29,9 @@ def make_features1(listings):
     May return a view (not copy)
     This is feature set version 1 (other versions may exist)
     """
-    # TODO think more about whether to use nReviews
-    # FIXME may need to apply standard scaler
-    # FIXME need to convert categorical columns to multiple binary columns
-    # FIXME how to deal with missing data (e.g. -1 in some columns)
-    # FIXME add length of heading and description and photo comments
-    use_columns = [column for column in listings.columns if 'amenity' in column]
+
+    use_columns = [column for
+                   column in listings.columns if 'amenity' in column]
     use_columns.extend(('bathrooms', 'bedrooms', 'beds', 'instantBookable',
                         'isCalAvailable', 'lastUpdatedAt', 'occupancy',
                         'propType', 'roomType', 'securityDeposit', 'size',
@@ -35,6 +40,60 @@ def make_features1(listings):
                         'monthly', 'nightly', 'weekend', 'weekly',
                         'nReviews',))
     return listings[use_columns]
+
+
+def make_features2(listings):
+    """
+    Get features for ML from DataFrame
+
+    May return a view (not copy)
+    This is feature set version 2 (other versions may exist)
+    Includes categorical features as multiple binary features
+    Includes lengths of listing text
+    """
+    features1 = make_features1(listings)
+    # Categorical features
+    # convert categorical columns to multiple binary columns
+    cancellation_values = {'Flexible': 0, 'Moderate': 1, 'Strict': 2,
+                           'Super Strict': 3}
+    response_time_values = {'': 0, 'a few days or more': 1, 'within a day': 2,
+                            'within a few hours': 3, 'within an hour': 4}
+    # dict.get maps keys to values, so map will return array of ints
+    cancellation = listings.cancellation.map(cancellation_values.get)
+    responseTime = listings.responseTime.map(response_time_values.get)
+    # listings.propType  # categorical with 0--4 so far seen
+    # listings.roomType  # categorical with 0--2 so far seen
+    categorical_features = pd.concat((cancellation, responseTime,
+                                      listings.propType, listings.roomType,),
+                                      axis=1)
+    # Hardcode number of values so result will have same number of columns
+    #   even if not all possible values are present (e.g. encoding 1 row)
+    encoder = sklearn.preprocessing.OneHotEncoder(n_values=(4, 5, 5, 3,),
+                                                  categorical_features='all',
+                                                  sparse=False,
+                                                  handle_unknown='error')
+    coded_features = pd.DataFrame(encoder.fit_transform(categorical_features),
+                                  index=categorical_features.index)
+    coded_features.rename(
+        columns=lambda name: 'features2_categorical' + str(name),
+        inplace=True)
+
+    # Text lengths
+    descriptionLength = listings.description.map(len)
+    headingLength = listings.heading.map(len)
+    photosCommentsLen = listings.photosComments.map(len)
+
+    result = pd.concat((features1, descriptionLength, headingLength,
+                        photosCommentsLen, coded_features,), axis=1, copy=True)
+    result.rename(columns={'description': 'descriptionLength',
+                           'heading': 'headingLength',
+                           'photosComments': 'photosCommentsLength'},
+                           inplace=True)
+    # remove categorical features that were in features1 and
+    #   are now in coded_features
+    del result['propType']
+    del result['roomType']
+    return result
 
 
 def categorize_rating(rating):
