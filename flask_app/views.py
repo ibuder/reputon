@@ -28,6 +28,8 @@ def output():
     if data is None:
         return render_template("output_inherited.html",
                                error='No data for listing ' + id_)
+    # Make sure to use the same version of features
+    #   that the classifier was trained on
     features = make_features1(data)
     # Result of predict is array so get first element
     rating = rating_format[clf.predict(features)[0]]
