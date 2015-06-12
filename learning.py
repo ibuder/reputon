@@ -180,32 +180,53 @@ def get_dummy_clf():
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=4, train_sizes=np.linspace(.1, 1.0, 5),
-                        scoring='accuracy'):
+                        scoring='accuracy', dummy=None):
+    """
+    Calculate and plot learning curves
+
+    dummy: A dummy model to compare to
+    """
+
+    alpha = 0.1
     plt.figure()
     plt.title(title)
     if ylim is not None:
         plt.ylim(*ylim)
     plt.xlabel("Training examples")
     plt.ylabel(scoring)
-    train_sizes, train_scores, test_scores = skl.learning_curve.learning_curve(
+    n_train, train_scores, test_scores = skl.learning_curve.learning_curve(
         estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes,
         scoring=scoring)
     train_scores_mean = np.mean(train_scores, axis=1)
     train_scores_std = np.std(train_scores, axis=1)
     test_scores_mean = np.mean(test_scores, axis=1)
     test_scores_std = np.std(test_scores, axis=1)
+    if dummy:
+        (dummy_n_train, dummy_train_scores,
+         dummy_test_scores) = skl.learning_curve.learning_curve(
+         dummy, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes,
+         scoring=scoring)
+        dummy_test_scores_mean = np.mean(dummy_test_scores, axis=1)
+        dummy_test_scores_std = np.std(dummy_test_scores, axis=1)
     plt.grid()
-    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+    if dummy:
+        plt.fill_between(n_train,
+                         dummy_test_scores_mean - dummy_test_scores_std,
+                         dummy_test_scores_mean + dummy_test_scores_std,
+                         alpha=alpha, color='b')
+        plt.plot(n_train, dummy_test_scores_mean, 'o-', color='b',
+                 label="Dummy model")
+    plt.fill_between(n_train, train_scores_mean - train_scores_std,
                      train_scores_mean + train_scores_std, alpha=0.1,
                      color="r")
-    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+    plt.fill_between(n_train, test_scores_mean - test_scores_std,
                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+    plt.plot(n_train, train_scores_mean, 'o-', color="r",
              label="Training score")
-    plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+    plt.plot(n_train, test_scores_mean, 'o-', color="g",
              label="Cross-validation score")
-
     plt.legend(loc="best")
+    plt.grid(True, which='both', axis='y')
     return plt
 
 
