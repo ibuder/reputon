@@ -18,13 +18,12 @@ import db
 
 # TODO Think about having binary features for no bathroom, bedroom, etc. info
 #   i.e. when those columns are -1
+#   non-linear models should be ok
+#   (e.g. random forest can have special case for -1)
 # FIXME how to deal with missing data (e.g. -1 in some columns)
+
 # TODO map checkIn, checkOut to numerical
 # TODO bag of words for text
-# FIXME REMOVE NUMBER OF REVIEWS
-# Bad idea to use number of reviews: since it doesn't help in the use case
-#   (nReviews is always 0)
-#   it makes the generalization accuracy look better than it should be
 
 
 def make_features1(listings):
@@ -101,6 +100,36 @@ def make_features2(listings):
     return result
 
 
+def make_features3(listings):
+    """
+    Get features for ML from DataFrame
+
+    May return a view (not copy).
+    This is feature set version 3 (other versions may exist).
+    Does not include # of reviews.
+    Includes binary features for top 50 words in heading
+    """
+    result = make_features2(listings)
+    # Top 50 words found in headings in SF (see ML_2015-06-11 iPython notebook)
+    heading_words = ['in', 'Mission', 'Room', 'Private', 'the', 'SF',
+       'Victorian', 'with',
+       'Studio', 'of', '1', '&', 'Sunny', 'Hill', '-', 'Modern', 'Apartment',
+       'room', '2', 'Bedroom', 'Home', 'Cozy', 'Flat', 'Beautiful', 'Apt',
+       'Valley', 'San', 'Charming', 'Garden', 'Spacious', 'Park', 'Heights',
+       'Francisco', 'View', 'Noe', 'bedroom', 'House', 'near', 'Large', 'and',
+       'to', 'Castro', 'Nob', 'Heart', 'Beach', 'Great', 'BR', 'Haight',
+       'Luxury', 'private']
+    for word in heading_words:
+        result[word + '_in_heading'] = listings.heading.map(lambda heading:
+                                                            word in heading)
+
+    # Bad idea to use number of reviews: since it doesn't help in the use case
+    #   (nReviews is always 0)
+    #   it makes the generalization accuracy look better than it should be
+    del result['nReviews']
+    return result
+
+
 def categorize_rating(rating):
     """
     Map continuous rating to discrete categories
@@ -145,7 +174,8 @@ def get_dummy_clf():
     """
     Dummy classifier for comparison
     """
-    return skl.dummy.DummyClassifier(strategy='stratified')
+    # Most frequent is the best dummy when using accuracy metric
+    return skl.dummy.DummyClassifier(strategy='most_frequent')
 
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
@@ -182,4 +212,4 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 if __name__ == '__main__':
     engine = db.create_root_engine()
     rawtable = pd.io.sql.read_sql_table('listings', engine, index_col='id')
-    frame_out = make_features1(rawtable)
+    frame_out = make_features3(rawtable)
