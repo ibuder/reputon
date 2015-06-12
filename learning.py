@@ -21,7 +21,10 @@ import db
 # FIXME how to deal with missing data (e.g. -1 in some columns)
 # TODO map checkIn, checkOut to numerical
 # TODO bag of words for text
-# TODO think more about whether to use nReviews
+# FIXME REMOVE NUMBER OF REVIEWS
+# Bad idea to use number of reviews: since it doesn't help in the use case
+#   (nReviews is always 0)
+#   it makes the generalization accuracy look better than it should be
 
 
 def make_features1(listings):
