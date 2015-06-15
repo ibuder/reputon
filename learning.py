@@ -24,7 +24,6 @@ import db
 # FIXME how to deal with missing data (e.g. -1 in some columns)
 
 # TODO map checkIn, checkOut to numerical
-# TODO bag of words for text
 # TODO use CountVectorizer for heading and photo comments
 # TODO evaluate how many bag of words features are useful
 
