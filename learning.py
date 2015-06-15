@@ -11,6 +11,7 @@ import sklearn.cross_validation
 import sklearn.linear_model
 import sklearn.pipeline
 import sklearn.preprocessing
+import sklearn.feature_extraction.text
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -24,6 +25,8 @@ import db
 
 # TODO map checkIn, checkOut to numerical
 # TODO bag of words for text
+# TODO use CountVectorizer for heading and photo comments
+# TODO evaluate how many bag of words features are useful
 
 
 def make_features1(listings):
@@ -59,7 +62,7 @@ def make_features2(listings):
     # Categorical features
     # convert categorical columns to multiple binary columns
     cancellation_values = {'Flexible': 0, 'Moderate': 1, 'Strict': 2,
-                           'Super Strict': 3}
+                           'Super Strict': 3, 'No Refunds': 4, 'Long Term': 5}
     response_time_values = {'': 0, 'a few days or more': 1, 'within a day': 2,
                             'within a few hours': 3, 'within an hour': 4}
     # dict.get maps keys to values, so map will return array of ints
@@ -72,7 +75,7 @@ def make_features2(listings):
                                       axis=1)
     # Hardcode number of values so result will have same number of columns
     #   even if not all possible values are present (e.g. encoding 1 row)
-    encoder = sklearn.preprocessing.OneHotEncoder(n_values=(4, 5, 5, 3,),
+    encoder = sklearn.preprocessing.OneHotEncoder(n_values=(6, 5, 5, 3,),
                                                   categorical_features='all',
                                                   sparse=False,
                                                   handle_unknown='error')
@@ -107,32 +110,117 @@ def make_features3(listings):
     May return a view (not copy).
     This is feature set version 3 (other versions may exist).
     Does not include # of reviews.
-    Includes binary features for top 50 words in heading
+    Includes binary features for top 100 words in heading and photo comments
+    Includes counts of top 200 words in description
     """
     result = make_features2(listings)
-    # Top 50 words found in headings in SF (see ML_2015-06-11 iPython notebook)
-    heading_words = ['in', 'Mission', 'Room', 'Private', 'the', 'SF',
-       'Victorian', 'with',
-       'Studio', 'of', '1', '&', 'Sunny', 'Hill', '-', 'Modern', 'Apartment',
-       'room', '2', 'Bedroom', 'Home', 'Cozy', 'Flat', 'Beautiful', 'Apt',
-       'Valley', 'San', 'Charming', 'Garden', 'Spacious', 'Park', 'Heights',
-       'Francisco', 'View', 'Noe', 'bedroom', 'House', 'near', 'Large', 'and',
-       'to', 'Castro', 'Nob', 'Heart', 'Beach', 'Great', 'BR', 'Haight',
-       'Luxury', 'private']
+    # Top 100 words found in headings (see ML_2015-06-14 iPython notebook)
+    heading_words = ['in', 'Room', 'Private', '1', 'room', 'Bedroom', '2',
+       'Studio', 'Apt',
+       'to', 'Apartment', 'Cozy', '-', '&', 'the', 'of', 'with', 'Beautiful',
+       'Spacious', 'bedroom', 'Park', 'East', 'Village', 'Sunny', 'NYC',
+       'Loft', 'Charming', 'Hollywood', 'Modern', 'and', 'Luxury', 'Brooklyn',
+       'West', 'Large', 'apt', 'Beach', 'Home', 'apartment', 'Great', 'for',
+       'near', 'Williamsburg', 'Manhattan', 'House', 'from', 'Central', 'BR',
+       '1BR', 'The', 'on', 'a', '3', 'private', 'studio', 'Heart', 'Venice',
+       'New', 'View', 'Garden', 'Bright', 'City', 'Amazing', 'Upper', 'Lovely',
+       'home', 'Side', 'Flat', 'Huge', 'Bed', 'Quiet', 'heart', 'One',
+       'Gorgeous', 'Hills', 'Location', 'Near', 'Hill', 'bed', 'Apt.', 'loft',
+       'Heights', 'A', '2BR', '+', 'by', 'Brownstone', 'LA', 'Bath',
+       'Victorian', 'Mission', 'house', 'Super', 'Square', 'flat', 'Condo',
+       'Chelsea', 'Suite', 'Big', 'Harlem', 'Downtown']
     for word in heading_words:
         result[word + '_in_heading'] = listings.heading.map(lambda heading:
                                                             word in heading)
+
+    # Top 100 words found in photo comments
+    #   (see ML_2015-06-14 iPython notebook)
+    photo_words = ['the', 'and', 'with', 'of', 'to', 'a', 'room', 'in',
+       'from', 'The',
+       'is', 'for', 'bedroom', 'Living', 'living', 'Bedroom', 'kitchen',
+       'Kitchen', 'bed', 'view', 'on', 'Room', 'your', 'bathroom', 'you',
+       'area', 'View', '-', 'Bathroom', 'size', 'Master', '&', '2', 'at',
+       'dining', 'Dining', 'or', 'has', 'TV', 'space', 'full', 'private',
+       'our', 'out', 'room.', 'This', 'shower', 'table', 'Queen', 'can',
+       'Full', 'A', 'are', 'queen', 'front', 'large', 'all', 'this', 'Private',
+       'into', 'door', 'Large', 'up', 'that', 'closet', 'as', 'have', '1',
+       'new', 'Your', 'bed.', 'by', 'great', 'floor', 'garden', 'light',
+       'bath', 'be', 'back', 'coffee', 'comfortable', 'window', 'Front', 'two',
+       'apartment', 'just', 'walk', 'my', 'Bed', 'Guest', 'one', 'master',
+       'Park', 'entrance', '2nd', 'Our', 'bedroom.', 'street', 'house', 'an']
+    for word in photo_words:
+        result[word + '_in_photoComments'] = listings.photosComments.map(
+            lambda comment: word in comment)
+
+    # Top 200 words in description (see ML_2015-06-14 iPython notebook)
+    description_words = ['apartment', 'on', 'check', 'bath', 'spacious',
+                         'block', 'which', 'time', 'size', 'your', 'nyc',
+                         'more', 'views', 'and', 'like', 'houserules',
+                         'transportation', 'people', 'within', 'coffee',
+                         'property', 'for', 'away', 'room', 'train', 'or',
+                         'central', 'walk', 'great', 'flat', 'new', 'where',
+                         'downtown', 'internet', 'home', 'space', 'towels',
+                         'you', 'so', 'garden', 'bars', 'tv', 'other', 'up',
+                         'with', 'available', 'guest', 'very', 'minutes',
+                         'll', 'beach', 'want', 'full', 'as', 'into',
+                         'access', 'will', 're', 'stop', 'located', 'high',
+                         'place', 'bus', 'the', 'etc', 'we', 'quiet', 'enjoy',
+                         'subway', 'restaurants', 'unit', 'brooklyn', 'an',
+                         'bathroom', 'night', 'most', 'beautiful', 'dining',
+                         'may', 'safe', 'la', 'our', 'living', 'guests',
+                         'but', 'street', 'when', 'square', 'stay',
+                         'hollywood', 'small', 'dryer', 'kitchen', 'it',
+                         'car', 'neighborhood', '15', 'village', 'side',
+                         'well', '10', 'in', 'all', 'if', 'park', 'during',
+                         'floor', 'studio', 'has', 'center', 'area', 'after',
+                         'own', 'bedroom', 'public', 'private', 'is', 'fully',
+                         'smoking', 'do', 'us', 'of', 'perfect', 'heart',
+                         'that', 'parking', 'easy', 'be', 'to', 'many',
+                         'east', 'love', 'out', 'off', 'no', 'also', 'wifi',
+                         'door', 'queen', 'me', 'shops', 'please', 'short',
+                         'only', 'blocks', 'large', 'need', 'free', 'get',
+                         'cable', 'can', 'laundry', 'from', 'some', 'have',
+                         'clean', 'best', 'around', 'any', 'two', 'minute',
+                         'close', 'am', 'there', 'food', 'my', 'take', 'this',
+                         'shopping', 'comfortable', 'right', 'house', 'few',
+                         'manhattan', 'station', 'not', '20', 'just', 'feel',
+                         'everything', 'york', 'about', 'pets', 'bed', 'min',
+                         'than', 'location', 'are', 'use', 'here', 'walking',
+                         'distance', 'make', 'building', 'city', 'by', 'one',
+                         'at', 'day', 'west']
+    vectorizer = skl.feature_extraction.text.CountVectorizer(
+        vocabulary=description_words)
+    column_names = {i: word + '_in_description'
+                    for i, word in enumerate(description_words)}
+    description_features = pd.DataFrame(
+        vectorizer.transform(listings.description).toarray(),
+        index=listings.index)
+    description_features.rename(columns=column_names, inplace=True)
 
     # Bad idea to use number of reviews: since it doesn't help in the use case
     #   (nReviews is always 0)
     #   it makes the generalization accuracy look better than it should be
     del result['nReviews']
-    return result
+
+    return pd.concat((result, description_features,), axis=1)
 
 
-def categorize_rating(rating):
+def categorize_rating2(rating):
     """
-    Map continuous rating to discrete categories
+    Map continuous rating to 2 discrete categories
+    """
+    if rating > 4.25:
+        return '4.25+'
+    else:
+        return '4.25-'
+    assert 0
+
+
+def categorize_rating1(rating):
+    """
+    Map continuous rating to 3 discrete categories
+
+    This is version 1, other versions may exist
     """
     if rating > 4.5:
         return '5-'
@@ -143,7 +231,8 @@ def categorize_rating(rating):
     assert 0  # unexpected rating
 
 
-def get_training_test_set(listings, make_features=make_features1):
+def get_training_test_set(listings, make_features=make_features1,
+                          categorize_rating=categorize_rating1):
     """
     Get training/testing set split for ML
 
@@ -152,6 +241,8 @@ def get_training_test_set(listings, make_features=make_features1):
     listings: DataFrame from SQL table listings
 
     make_features: function that maps listings to features
+
+    categorize_rating: function that maps ratings to classes
     """
     labeled_listings = listings.dropna(subset=('rating',))
     X = make_features(labeled_listings)
@@ -176,6 +267,24 @@ def get_dummy_clf():
     """
     # Most frequent is the best dummy when using accuracy metric
     return skl.dummy.DummyClassifier(strategy='most_frequent')
+
+
+def make_weight(y):
+    """
+    Return sample weights according to inverse class frequency
+
+    y: Series of labels
+    """
+    weight_dict = dict(1/y.value_counts())
+    return y.map(weight_dict)
+
+
+def class_weighted_accuracy_score(estimator, X, y):
+    """
+    Scorer that uses accuracy after reweighting samples by class frequency
+    """
+    return skl.metrics.accuracy_score(y, estimator.predict(X),
+                                      sample_weight=make_weight(y))
 
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
