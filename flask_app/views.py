@@ -33,6 +33,7 @@ def output():
     features = make_features1(data)
     # Result of predict is array so get first element
     rating = rating_format[clf.predict(features)[0]]
-    probability = np.max(clf.predict_proba(features))
+    probability = np.around(np.max(clf.predict_proba(features)), 2) * 100
+    probability = str(int(probability)) + '%'
     return render_template("output_inherited.html", rating=rating,
                            probability=probability)
