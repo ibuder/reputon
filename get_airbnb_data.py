@@ -14,6 +14,7 @@ import settings
 import db
 
 
+# TODO add scrape date to DB
 # FIXME Clean up all dataframe dtypes
 def make_airbnb_json_dataframe(json, n_amenities=50):
     """
