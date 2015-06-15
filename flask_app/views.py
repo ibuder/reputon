@@ -1,4 +1,4 @@
-from flask import render_template, request
+from flask import render_template, request, send_from_directory
 from flask_app import app
 import pickle
 import numpy as np
@@ -36,4 +36,14 @@ def output():
     probability = np.around(np.max(clf.predict_proba(features)), 2) * 100
     probability = str(int(probability)) + '%'
     return render_template("output_inherited.html", rating=rating,
-                           probability=probability)
+                           probability=probability, url=url)
+
+
+@app.route('/js/<path:path>')
+def send_js(path):
+    return send_from_directory('js', path)
+
+
+@app.route('/css/<path:path>')
+def send_css(path):
+    return send_from_directory('css', path)
