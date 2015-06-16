@@ -14,6 +14,7 @@ import sklearn.preprocessing
 import sklearn.feature_extraction.text
 import numpy as np
 import matplotlib.pyplot as plt
+import enchant
 
 import db
 
@@ -24,6 +25,8 @@ import db
 # FIXME how to deal with missing data (e.g. -1 in some columns)
 
 # TODO map checkIn, checkOut to numerical
+
+# FIXME re-evaluate top words with full corpus
 # TODO use CountVectorizer for heading and photo comments
 # TODO evaluate how many bag of words features are useful
 
@@ -204,6 +207,30 @@ def make_features3(listings):
     return pd.concat((result, description_features,), axis=1)
 
 
+def make_features4(listings):
+    """
+    Get features for ML from DataFrame
+
+    May return a view (not copy).
+    This is feature set version 4 (other versions may exist).
+    Includes number of misspellings.
+    """
+    features3 = make_features3(listings)
+    spellchecker = enchant.Dict("en_US")
+    tokenize = skl.feature_extraction.text.CountVectorizer().build_tokenizer()
+
+    def count_misspellings(text):
+        return sum(map(lambda word: not spellchecker.check(word),
+                       tokenize(text)))
+
+    nMisspellings = listings.description.map(count_misspellings)
+
+    result = pd.concat((features3, nMisspellings,), axis=1)
+    result.rename(columns={'description': 'nDescriptionMisspellings'},
+                  inplace=True)
+    return result
+
+
 def categorize_rating2(rating):
     """
     Map continuous rating to 2 discrete categories
@@ -341,4 +368,4 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 if __name__ == '__main__':
     engine = db.create_root_engine()
     rawtable = pd.io.sql.read_sql_table('listings', engine, index_col='id')
-    frame_out = make_features3(rawtable)
+    frame_out = make_features4(rawtable.iloc[:1000, :])
