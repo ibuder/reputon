@@ -6,6 +6,7 @@ import numpy as np
 from get_airbnb_data import make_airbnb_json_dataframe, airbnb_url_to_id
 from get_airbnb_data import get_airbnb_by_id
 from learning import make_features1
+import settings
 
 
 @app.route('/')
@@ -36,7 +37,8 @@ def output():
     probability = np.around(np.max(clf.predict_proba(features)), 2) * 100
     probability = str(int(probability)) + '%'
     return render_template("output_inherited.html", rating=rating,
-                           probability=probability, url=url)
+                           probability=probability, url=url,
+                           embedly_key=settings.embedly)
 
 
 @app.route('/js/<path:path>')

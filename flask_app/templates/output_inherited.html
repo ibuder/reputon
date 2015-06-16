@@ -1,12 +1,24 @@
 {% extends "input.html" %}
 {% block results %}
   <div class="container">
-    <div class="starter-template">
-      <h2>Results</h2>
-    </div>
+    <h2>Results</h2>
   {{error}}
   {% if rating is defined %}
     Average rating will be <b>{{rating}}</b> with probability <b>{{probability}}</b>
   {% endif %}
   </div>
 {% endblock results %}
+
+{% block preview_listing %}
+  {% if url is defined %}
+      <a id="airbnbwindow" href="{{ url }}">{{ url }}</a>
+  {% endif %}
+{% endblock preview_listing %}
+
+{% block end_scripts %}
+  <script src="http://cdn.embed.ly/jquery.embedly-3.1.1.min.js" type="text/javascript"></script>
+  <script>
+     $("#airbnbwindow").embedly({key: "{{ embedly_key }}",
+       query: {maxwidth:400} });
+  </script>
+{% endblock end_scripts %}

@@ -12,14 +12,11 @@
     <title>reputon</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="starter-template.css" rel="stylesheet">
+    <link href="/static/css/starter-template.css" rel="stylesheet">
 
-    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
-    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="../../assets/js/ie-emulation-modes-warning.js"></script>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -52,17 +49,10 @@
 
 <br><br>
 
-
+<div style="float: left; width: 25%">
   <div class="container">
-
-    <div class="starter-template">
-
-      <h2>Predict a rating</h2>
-
-    </div>
-
-    <div class = "container">
-
+    <h2>Predict a rating</h2>
+      <div>
       <form  action="/output" method="GET">
 
         <div class="form-group">
@@ -93,22 +83,23 @@
   {% block results %}{% endblock %}
     <div class = "container">
       <h2>Examples</h2>
-      <ul>
-        <a href="/output?URL=https://www.airbnb.com/rooms/1087433"><li class="btn btn-default btn-lg">https://www.airbnb.com/rooms/1087433</li></a>
-        <a href="/output?URL=https://www.airbnb.com/rooms/748222"><li class="btn btn-default btn-lg">https://www.airbnb.com/rooms/748222</li></a>
-        <a href="/output?URL=https://www.airbnb.com/rooms/923807"><li class="btn btn-default btn-lg">https://www.airbnb.com/rooms/923807</li></a>
-      </ul>
+      
+        <a href="/output?URL=https://www.airbnb.com/rooms/1087433"><span class="btn btn-default btn-lg">https://www.airbnb.com/rooms/1087433</span></a><br/>
+        <a href="/output?URL=https://www.airbnb.com/rooms/748222"><span class="btn btn-default btn-lg">https://www.airbnb.com/rooms/748222</span></a><br/>
+        <a href="/output?URL=https://www.airbnb.com/rooms/923807"><span class="btn btn-default btn-lg">https://www.airbnb.com/rooms/923807</span></a>
     </div>  
-
+</div>
+<div style="margin-left: 35%">
+    {% block preview_listing %}{% endblock %}
+</div>
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src="../../dist/js/bootstrap.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
-
-   <script src="static/js/bootstrap.min.js"></script>
+    <!-- <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>-->
+    {% block end_scripts %}{% endblock %}
   </body>
 </html>
 
