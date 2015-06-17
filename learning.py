@@ -214,8 +214,10 @@ def make_features4(listings):
     May return a view (not copy).
     This is feature set version 4 (other versions may exist).
     Includes number of misspellings.
+    Includes Zillow zip code value index
     """
     features3 = make_features3(listings)
+
     spellchecker = enchant.Dict("en_US")
     tokenize = skl.feature_extraction.text.CountVectorizer().build_tokenizer()
 
@@ -225,7 +227,23 @@ def make_features4(listings):
 
     nMisspellings = listings.description.map(count_misspellings)
 
-    result = pd.concat((features3, nMisspellings,), axis=1)
+    engine = db.create_root_engine()
+    zillow_demographics = pd.io.sql.read_sql_table('zillow_demographics',
+                                                   engine)
+    # If zipcode cannot be found, left merge puts missing
+    # Need to reset index so it is available after merge
+    # pandas left merge WILL give duplicates so zillow_demographics must not
+    #   contain duplicates
+    listings_zillow = pd.merge(listings.reset_index(), zillow_demographics,
+                               how='left', left_on='postalCode',
+                               right_on='zip', copy=True)
+    # Merge resets index
+    listings_zillow.set_index('id', inplace=True)
+
+    result = pd.concat((features3, nMisspellings,
+                        listings_zillow.homeValueIndex,
+                        listings_zillow.medianListPricePerSqFt,
+                        listings_zillow.medianSingleFamilyHomeValue,), axis=1)
     result.rename(columns={'description': 'nDescriptionMisspellings'},
                   inplace=True)
     return result
