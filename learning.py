@@ -246,6 +246,7 @@ def make_features4(listings):
                         listings_zillow.medianSingleFamilyHomeValue,), axis=1)
     result.rename(columns={'description': 'nDescriptionMisspellings'},
                   inplace=True)
+    result.fillna(0, inplace=True)  # for missing Zillow data
     return result
 
 
