@@ -46,13 +46,19 @@ def get_zillow_demographics_one(zip_):
 
 engine = db.create_root_engine()
 # Zillow has API request limit, so try to minimize calls
+
+# Get list of zip codes we don't have info yet
 zipcodes = pd.io.sql.read_sql("""SELECT DISTINCT SUBSTRING(postalCode, 1, 5)
-                                     FROM listings WHERE country =
-                                     "United States"
+                                     AS zip5
+                                     FROM listings LEFT JOIN
+                                     zillow_demographics ON SUBSTRING(postalCode, 1, 5)=zip
+                                     WHERE country = "United States"
+                                     AND zip IS NULL
                                  """, engine)
 
+# Limit to zillow API rate
 zillow_demographics = [get_zillow_demographics_one(zip_)
-                       for zip_ in zipcodes.iloc[:, 0]]
+                       for zip_ in zipcodes.iloc[0:900, 0]]
 zillow_demographics = pd.DataFrame(zillow_demographics)
 zillow_demographics.homeValueIndex = zillow_demographics.homeValueIndex.map(
     make_float)
