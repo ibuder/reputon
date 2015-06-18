@@ -250,9 +250,37 @@ def make_features4(listings):
     return result
 
 
+def categorize_rating4(rating):
+    """
+    Map continuous rating to 3 discrete categories
+
+    This is version 4, other versions may exist
+    """
+    if rating > 4.75:
+        return '4.75+'
+    elif rating > 4.25:
+        return '4.25+'
+    else:
+        return '4.25-'
+    assert 0  # unexpected rating
+
+
+def categorize_rating3(rating):
+    """
+    Map continuous rating to 2 discrete categories
+    split at 3.75
+    """
+    if rating > 3.75:
+        return '3.75+'
+    else:
+        return '3.75-'
+    assert 0
+
+
 def categorize_rating2(rating):
     """
     Map continuous rating to 2 discrete categories
+    split at 4.25
     """
     if rating > 4.25:
         return '4.25+'
