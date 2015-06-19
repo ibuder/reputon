@@ -5,7 +5,7 @@ import numpy as np
 
 from get_airbnb_data import make_airbnb_json_dataframe, airbnb_url_to_id
 from get_airbnb_data import get_airbnb_by_id
-from learning import make_features1
+from learning import make_features5
 import settings
 
 
@@ -14,7 +14,7 @@ import settings
 def input_():
     return render_template("input.html")
 
-clf = pickle.load(open('pipe1.pkl', 'rb'))
+clf = pickle.load(open('pipe2.pkl', 'rb'))
 rating_format = {'5-': '5', '4.5-': '4.5', '4-': '4 or lower',
                  '4.75+': '5 (this might be a great deal!)',
                  '4.75-': '4.5 or lower'}
@@ -33,7 +33,7 @@ def output():
                                error='No data available for listing ' + id_)
     # Make sure to use the same version of features
     #   that the classifier was trained on
-    features = make_features1(data)
+    features = make_features5(data)
     # Result of predict is array so get first element
     rating = rating_format[clf.predict(features)[0]]
     probability = np.around(np.max(clf.predict_proba(features)), 2) * 100
