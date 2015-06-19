@@ -250,6 +250,32 @@ def make_features4(listings):
     return result
 
 
+def make_features5(listings):
+    """
+    Get features for ML from DataFrame
+
+    May return a view (not copy).
+    This is feature set version 5 (other versions may exist).
+    Same as version 4, but REMOVES bag of words features
+    """
+    result = make_features4(listings)
+    result.drop(result.columns[result.columns.get_loc('in_in_heading'):
+        result.columns.get_loc('west_in_description')+1], axis=1, inplace=True)
+    return result
+
+
+def categorize_rating5(rating):
+    """
+    Map continuous rating to 2 discrete categories
+    split at 4.75
+    """
+    if rating > 4.75:
+        return '4.75+'
+    else:
+        return '4.75-'
+    assert 0
+
+
 def categorize_rating4(rating):
     """
     Map continuous rating to 3 discrete categories
@@ -334,6 +360,22 @@ def get_logistic_regression_clf1():
         ('scaler', skl.preprocessing.StandardScaler()), ('logistic', clf)])
 
 
+def get_random_forest_clf2():
+    """
+    Random forest with max_features optimized by grid search
+
+    see ML 2015-06-18 iPython notebook for details
+    """
+    scaler = skl.preprocessing.StandardScaler()
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators=100,
+                                                  criterion='gini',
+                                                  max_features=10,
+                                                  max_depth=None,
+                                                  n_jobs=4,
+                                                  class_weight='auto')
+    return skl.pipeline.Pipeline([('scaler', scaler), ('clf', clf)])
+
+
 def get_dummy_clf():
     """
     Dummy classifier for comparison
@@ -362,7 +404,7 @@ def class_weighted_accuracy_score(estimator, X, y):
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=4, train_sizes=np.linspace(.1, 1.0, 5),
-                        scoring='accuracy', dummy=None):
+                        scoring='accuracy', dummy=None, plot_train=True):
     """
     Calculate and plot learning curves
 
@@ -398,13 +440,15 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                          alpha=alpha, color='b')
         plt.plot(n_train, dummy_test_scores_mean, 'o-', color='b',
                  label="Dummy model")
-    plt.fill_between(n_train, train_scores_mean - train_scores_std,
-                     train_scores_mean + train_scores_std, alpha=0.1,
-                     color="r")
+    if plot_train:
+        plt.fill_between(n_train, train_scores_mean - train_scores_std,
+                         train_scores_mean + train_scores_std, alpha=0.1,
+                         color="r")
     plt.fill_between(n_train, test_scores_mean - test_scores_std,
                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    plt.plot(n_train, train_scores_mean, 'o-', color="r",
-             label="Training score")
+    if plot_train:
+        plt.plot(n_train, train_scores_mean, 'o-', color="r",
+                 label="Training score")
     plt.plot(n_train, test_scores_mean, 'o-', color="g",
              label="Cross-validation score")
     plt.legend(loc="best")
@@ -415,4 +459,4 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 if __name__ == '__main__':
     engine = db.create_root_engine()
     rawtable = pd.io.sql.read_sql_table('listings', engine, index_col='id')
-    frame_out = make_features4(rawtable.iloc[:1000, :])
+    frame_out = make_features5(rawtable.iloc[:1000, :])
