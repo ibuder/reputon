@@ -15,7 +15,9 @@ def input_():
     return render_template("input.html")
 
 clf = pickle.load(open('pipe1.pkl', 'rb'))
-rating_format = {'5-': '5', '4.5-': '4.5', '4-': '4 or lower'}
+rating_format = {'5-': '5', '4.5-': '4.5', '4-': '4 or lower',
+                 '4.75+': '5 (this might be a great deal!)',
+                 '4.75-': '4.5 or lower'}
 
 
 @app.route('/output')
@@ -24,11 +26,11 @@ def output():
     id_ = airbnb_url_to_id(url)
     if not id_:
         return render_template("output_inherited.html",
-                               error='Cannot find Airbnb listing id in URL')
+                            error='Cannot find Airbnb listing id in given URL')
     data = make_airbnb_json_dataframe(get_airbnb_by_id(id_))
     if data is None:
         return render_template("output_inherited.html",
-                               error='No data for listing ' + id_)
+                               error='No data available for listing ' + id_)
     # Make sure to use the same version of features
     #   that the classifier was trained on
     features = make_features1(data)
