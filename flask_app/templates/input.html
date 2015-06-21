@@ -47,8 +47,7 @@
       </div>
     </nav>
 
-<br><br>
-
+{% block content %}
 <div style="float: left; width: 25%">
   <div class="container">
     <h2>Predict a rating</h2>
@@ -88,6 +87,9 @@
 <div style="margin-left: 35%">
     {% block preview_listing %}{% endblock %}
 </div>
+
+{% endblock content %}
+
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
