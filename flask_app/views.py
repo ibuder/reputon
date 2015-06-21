@@ -43,6 +43,11 @@ def output():
                            embedly_key=settings.embedly)
 
 
+@app.route('/slides')
+def slides():
+    return render_template("slides.html")
+
+
 @app.route('/js/<path:path>')
 def send_js(path):
     return send_from_directory('js', path)
