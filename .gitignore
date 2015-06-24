@@ -7,3 +7,4 @@ reputon.pem
 pipe2.pkl
 supervisord.pid
 reputon-2015-06-21.sql
+feedback/
