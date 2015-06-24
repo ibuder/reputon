@@ -21,12 +21,60 @@ rating_format = {'5-': '5', '4.5-': '4.5', '4-': '4 or lower',
                  '4.75+': '5 (this might be a great deal!)',
                  '4.75-': '4.5 or lower'}
 
+long_feature_names = {'bathrooms': 'Number of bathrooms',
+       'bedrooms': 'Number of bedrooms', 'beds': 'Number of beds',
+       'instantBookable': 'Instantly bookable',
+       'isCalAvailable': 'Calendar available',
+       'lastUpdatedAt': 'Most recently updated', 'occupancy': 'Occupancy',
+       'securityDeposit': 'Security deposit', 'size': 'Size',
+       'extraGuestsFee': 'Fee for extra guests', 'fee0': 'Cleaning fee',
+       'lat': 'Latitude', 'lng': 'Longitude', 'nPhotos': 'Number of photos',
+       'maxNight': 'Maximum stay length', 'minNight': 'Minimum stay length',
+       'monthly': 'Monthly price', 'nightly': 'Nightly price',
+       'weekend': 'Weekend price', 'weekly': 'Weekly price',
+       'descriptionLength': 'Description length',
+       'headingLength': 'Title length',
+       'photosCommentsLength': 'Length of photo comments',
+       'features2_categorical0': 'Cancellation policy',
+       'features2_categorical1': 'Cancellation policy',
+       'features2_categorical2': 'Cancellation policy',
+       'features2_categorical3': 'Cancellation policy',
+       'features2_categorical4': 'Cancellation policy',
+       'features2_categorical5': 'Cancellation policy',
+       'features2_categorical6': 'Host response time',
+       'features2_categorical7': 'Host response time',
+       'features2_categorical8': 'Host response time',
+       'features2_categorical9': 'Host response time',
+       'features2_categorical10': 'Host response time',
+       'features2_categorical11': 'Property type',
+       'features2_categorical12': 'Property type',
+       'features2_categorical13': 'Property type',
+       'features2_categorical14': 'Property type',
+       'features2_categorical15': 'Property type',
+       'features2_categorical16': 'Room type',
+       'features2_categorical17': 'Room type',
+       'features2_categorical18': 'Room type',
+       'nDescriptionMisspellings': 'Misspelled words',
+       'homeValueIndex': 'Zillow home value index',
+       'medianListPricePerSqFt': 'Zillow list price per sq. ft.',
+       'medianSingleFamilyHomeValue': 'Zillow median single family home value',
+       'amenity0': 'Heating/AC', 'amenity1': 'Breakfast',
+       'amenity2': 'Buzzer/intercom',
+       'amenity4': 'Dryer', 'amenity8': 'Family/kid friendly',
+       'amenity9': 'Indoor fireplace', 'amenity10': 'Gym',
+       'amenity11': 'Elevator In Building', 'amenity13': 'Hot tub',
+       'amenity15': 'Kitchen', 'amenity16': 'Free parking on premises',
+       'amenity17': 'Pets allowed', 'amenity18': 'Pool',
+       'amenity19': 'Smoking allowed',
+       'amenity20': 'Suitable for events',
+       'amenity21': 'TV', 'amenity22': 'Wireless Internet'}
 
 make_features = make_features5  # Make sure this matches classifier in use
 
 
 @app.route('/output')
 def output():
+    n_features_show = 3
     url = request.args.get('URL')
     id_ = airbnb_url_to_id(url)
     if not id_:
@@ -48,11 +96,14 @@ def output():
     probability = str(int(probability)) + '%'
 
     important_columns = feature_importances(features)
+    features = [long_feature_names.get(features.columns[important_columns[i]],
+                                       'Unknown')
+                                       for i in range(n_features_show)]
 
     return render_template("output_inherited.html", rating=rating,
                            probability=probability, url=url,
                            embedly_key=settings.embedly,
-                           feature=features.columns[important_columns[0]])
+                           features=features)
 
 
 n_comparison_examples = 100  # Examples for calculating feature importance

@@ -4,7 +4,8 @@
     <h2>Results</h2>
   {{error}}
   {% if rating is defined %}
-    Average rating will be <b style="font-size: 150%">{{rating}}</b> with probability <b style="font-size: 150%">{{probability}}</b>
+    <p>Average rating will be <b style="font-size: 150%">{{rating}}</b> with probability <b style="font-size: 150%">{{probability}}</b></p>
+    <p>The most important features were {{ features|join(', ') }}.</p>
   {% endif %}
   </div>
 {% endblock results %}
