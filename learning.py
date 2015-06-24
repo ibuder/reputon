@@ -216,6 +216,8 @@ def make_features4(listings):
     Includes number of misspellings.
     Includes Zillow zip code value index
     """
+    # Must be indexed by id for concat below to work
+    assert listings.index.name == 'id'
     features3 = make_features3(listings)
 
     spellchecker = enchant.Dict("en_US")
@@ -239,11 +241,11 @@ def make_features4(listings):
                                right_on='zip', copy=True)
     # Merge resets index
     listings_zillow.set_index('id', inplace=True)
-
     result = pd.concat((features3, nMisspellings,
                         listings_zillow.homeValueIndex,
                         listings_zillow.medianListPricePerSqFt,
-                        listings_zillow.medianSingleFamilyHomeValue,), axis=1)
+                        listings_zillow.medianSingleFamilyHomeValue,), axis=1,
+                        join='inner')  # Force indices to match
     result.rename(columns={'description': 'nDescriptionMisspellings'},
                   inplace=True)
     result.fillna(0, inplace=True)  # for missing Zillow data
@@ -459,4 +461,5 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 if __name__ == '__main__':
     engine = db.create_root_engine()
     rawtable = pd.io.sql.read_sql_table('listings', engine, index_col='id')
-    frame_out = make_features5(rawtable.iloc[:1000, :])
+    frame_out = make_features5(rawtable.iloc[:100, :])
+    pass
