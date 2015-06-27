@@ -18,7 +18,7 @@ def input_():
 
 clf = pickle.load(open('pipe2.pkl', 'rb'))
 rating_format = {'5-': '5', '4.5-': '4.5', '4-': '4 or lower',
-                 '4.75+': '5 stars (this might be a great deal!)',
+                 '4.75+': '5 stars!',
                  '4.75-': '4.5 stars or lower'}
 
 long_feature_names = {'bathrooms': 'Number of bathrooms',
