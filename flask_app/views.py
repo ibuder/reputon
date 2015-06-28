@@ -79,7 +79,7 @@ def output():
     id_ = airbnb_url_to_id(url)
     if not id_:
         return render_template("output_inherited.html",
-                            error='Cannot find Airbnb listing id in given URL')
+                        error='Cannot find Airbnb listing number in given URL')
     data = make_airbnb_json_dataframe(get_airbnb_by_id(id_))
     if data is None:
         return render_template("output_inherited.html",
