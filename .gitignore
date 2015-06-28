@@ -3,7 +3,7 @@ __pycache__/
 settings.py
 Immanuel_Buder_Insight_demo_week2.pdf
 stanford-ner-2015-04-20/
-reputon.pem
+*.pem
 pipe2.pkl
 supervisord.pid
 reputon-2015-06-21.sql
